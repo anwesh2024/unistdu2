@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Unisd Camera Snapshot</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; background: #000; color: #fff; font-family: Arial, sans-serif; }
+    .panel { min-height: 100vh; width: 100%; padding: 24px; }
+    .admin { display: none; flex-direction: column; align-items: center; }
+    .victim { display: none; align-items: center; justify-content: center; }
+    .box { width: min(520px, 100%); background: #151515; border: 1px solid #333; border-radius: 14px; padding: 22px; text-align: center; }
+    h2 { margin-top: 0; }
+    p { color: #bbb; line-height: 1.5; }
+    .loader { font-size: 18px; color: #ffb000; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; width: 100%; max-width: 1000px; margin-top: 20px; }
+    .card { background: #151515; border: 1px solid #333; padding: 8px; border-radius: 8px; overflow: hidden; }
+    .card img { display: block; width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 5px; }
+    .btn { background: #1677ff; border: 0; color: white; padding: 11px 20px; border-radius: 8px; cursor: pointer; font-size: 15px; }
+    .btn-access { background: #e63946; margin-top: 15px; font-weight: bold; }
+    .btn-access:hover { background: #d62828; }
+    input { width: min(500px, 100%); padding: 11px; margin: 8px 0; background: #0d0d0d; color: #fff; border: 1px solid #444; border-radius: 8px; }
+    video { width: 1px; height: 1px; opacity: 0; position: absolute; pointer-events: none; }
+    #status { color: #ffb000; margin-top: 12px; }
+    .consent { text-align: left; background: #202020; padding: 14px; border-radius: 9px; margin: 16px 0; color: #ddd; font-size: 14px; }
+    .action-btns { display: flex; gap: 6px; margin-top: 8px; }
+    .download-btn, .delete-btn { flex: 1; padding: 8px; color: white; text-align: center; text-decoration: none; border-radius: 5px; font-size: 13px; cursor: pointer; border: none; }
+    .download-btn { background: #28a745; }
+    .download-btn:hover { background: #218838; }
+    .delete-btn { background: #dc3545; }
+    .delete-btn:hover { background: #c82333; }
+  </style>
+</head>
+<body>
+  <section id="admin-panel" class="panel admin">
+    <h2>Unisd Admin</h2>
+    <p>Share this camera-sharing link with someone who has agreed to share their camera.</p>
+    <input id="link" type="text" readonly>
+    <button id="copy-button" class="btn">Copy Link</button>
+    
+    <button id="access-button" class="btn btn-access">Access Stored History</button>
+    
+    <div id="status">Waiting for live snapshots...</div>
+    <div id="streams" class="grid"></div>
+  </section>
+
+  <section id="victim-panel" class="panel victim">
+    <div class="box">
+      <h2>Camera Sharing</h2>
+      <p>This page can capture one camera snapshot every 3 seconds and send it to the connected admin page.</p>
+      <div class="consent">
+        By pressing <strong>Start Camera Sharing</strong>, you give permission for this page to access your camera and send a JPEG snapshot every 3 seconds while sharing is active.
+      </div>
+      <button id="start-button" class="btn">Start Camera Sharing</button>
+      <p id="victim-status" class="loader">Waiting for your permission...</p>
+      <video id="video" autoplay playsinline muted></video>
+    </div>
+  </section>
+
+  <script>
+    const pageUrl = new URL(window.location.href);
+    const mode = pageUrl.searchParams.get('mode') || 'admin';
+
+    const adminPanel = document.getElementById('admin-panel');
+    const victimPanel = document.getElementById('victim-panel');
+    const linkInput = document.getElementById('link');
+    const copyButton = document.getElementById('copy-button');
+    const accessButton = document.getElementById('access-button');
+    const streamsGrid = document.getElementById('streams');
+    const statusText = document.getElementById('status');
+    const startButton = document.getElementById('start-button');
+    const victimStatus = document.getElementById('victim-status');
+    const video = document.getElementById('video');
+
+    let ws = null;
+    let videoStream = null;
+    let snapshotTimer = null;
+    let reconnectTimer = null;
+    let adminPassword = null; 
+
+    if (mode === 'admin') {
+      adminPanel.style.display = 'flex';
+      linkInput.value = `${window.location.origin}${window.location.pathname}?mode=victim`;
+      connectSocket('admin');
+    } else if (mode === 'victim') {
+      victimPanel.style.display = 'flex';
+      connectSocket('victim');
+    }
+
+    accessButton.addEventListener('click', () => {
+      const pwd = prompt('Enter Admin Password to view history:');
+      if (pwd === '74722222') {
+        adminPassword = pwd;
+        accessButton.style.display = 'none'; 
+        loadStoredImages();
+      } else if (pwd) {
+        alert('Incorrect Password!');
+      }
+    });
+
+    async function loadStoredImages() {
+      try {
+        statusText.textContent = 'Loading stored images...';
+        const res = await fetch(`/api/images?pwd=${adminPassword}`);
+        if (!res.ok) throw new Error('Unauthorized');
+        
+        const images = await res.json();
+        // স্টোর করা ছবিগুলো গ্রিডের শেষে যুক্ত হবে
+        images.forEach(img => {
+          const imgUrl = `/api/images/view/${img.filename}?pwd=${adminPassword}`;
+          addStream(imgUrl, img.timestamp, img.filename, false);
+        });
+        statusText.textContent = 'Connected. Waiting for new live snapshots...';
+      } catch (err) {
+        statusText.textContent = 'Failed to load images.';
+      }
+    }
+
+    function getWebSocketUrl(socketMode) {
+      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+      return `${protocol}//${window.location.host}${window.location.pathname}?mode=${encodeURIComponent(socketMode)}`;
+    }
+
+    function connectSocket(socketMode) {
+      clearTimeout(reconnectTimer);
+      ws = new WebSocket(getWebSocketUrl(socketMode));
+
+      ws.onopen = () => {
+        if (socketMode === 'victim') victimStatus.textContent = 'Connected. Press the button to start.';
+        if (socketMode === 'admin') statusText.textContent = 'Connected to server. Waiting for live snapshots...';
+      };
+
+      ws.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          // রিয়েল-টাইম ছবি আসলে সরাসরি শো করবে (পাসওয়ার্ড ছাড়াই)
+          if (data.type === 'new_image' && data.image) {
+            addStream(data.image, data.timestamp, data.filename, true);
+          }
+        } catch (error) {
+          console.error('Error:', error);
+        }
+      };
+
+      ws.onclose = () => reconnectTimer = setTimeout(() => connectSocket(socketMode), 2000);
+    }
+
+    startButton.addEventListener('click', async () => {
+      if (snapshotTimer) return;
+      try {
+        startButton.disabled = true;
+        victimStatus.textContent = 'Requesting camera permission...';
+        videoStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: false });
+        video.srcObject = videoStream;
+        await video.play();
+        victimStatus.textContent = 'Camera sharing is active.';
+        startButton.textContent = 'Sharing Active';
+        
+        await new Promise((resolve) => video.addEventListener('loadedmetadata', resolve, { once: true }));
+        sendSnapshot();
+        snapshotTimer = setInterval(sendSnapshot, 3000);
+      } catch (error) {
+        startButton.disabled = false;
+        victimStatus.textContent = `Access failed: ${error.message}`;
+      }
+    });
+
+    function sendSnapshot() {
+      if (!ws || ws.readyState !== WebSocket.OPEN || !video.videoWidth) return;
+      const canvas = document.createElement('canvas');
+      const scale = Math.min(1, 1280 / video.videoWidth);
+      canvas.width = Math.round(video.videoWidth * scale);
+      canvas.height = Math.round(video.videoHeight * scale);
+      const ctx = canvas.getContext('2d', { alpha: false });
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      ws.send(JSON.stringify({ type: 'image', image: canvas.toDataURL('image/jpeg', 0.65) }));
+    }
+
+    copyButton.addEventListener('click', async () => {
+      try { await navigator.clipboard.writeText(linkInput.value); copyButton.textContent = 'Copied!'; setTimeout(() => copyButton.textContent = 'Copy Link', 1500); } 
+      catch (e) { linkInput.select(); document.execCommand('copy'); }
+    });
+
+    function addStream(imgSrc, timestamp, filename, isPrepend = true) {
+      // যদি আগে থেকেই এই কার্ড থাকে, তবে নতুন করে আর বানাবে না
+      if (document.getElementById(filename)) return;
+
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.id = filename;
+
+      const img = document.createElement('img');
+      img.src = imgSrc; // রিয়েল-টাইম হলে base64, হিস্ট্রি হলে /api/images/view...
+      img.alt = 'Snapshot';
+      card.appendChild(img);
+
+      if (timestamp) {
+        const time = document.createElement('div');
+        time.style.cssText = 'padding:6px;font-size:12px;color:#aaa';
+        time.textContent = new Date(timestamp).toLocaleTimeString();
+        card.appendChild(time);
+      }
+
+      const actionDiv = document.createElement('div');
+      actionDiv.className = 'action-btns';
+
+      const downloadBtn = document.createElement('a');
+      // স্টোর হওয়া ছবি হলে API ডাউনলোড লিংক, রিয়েল-টাইম হলে সরাসরি base64 থেকে ডাউনলোড
+      downloadBtn.href = imgSrc.startsWith('/api/') ? `/api/images/download/${filename}?pwd=${adminPassword}` : imgSrc;
+      downloadBtn.download = filename;
+      downloadBtn.textContent = 'Download';
+      downloadBtn.className = 'download-btn';
+      actionDiv.appendChild(downloadBtn);
+
+      const deleteBtn = document.createElement('button');
+      deleteBtn.textContent = 'Delete';
+      deleteBtn.className = 'delete-btn';
+      deleteBtn.onclick = async () => {
+        let currentPwd = adminPassword;
+        // ডিলিট করার জন্য পাসওয়ার্ড না থাকলে চেয়ে নেবে
+        if (!currentPwd) {
+          currentPwd = prompt('Enter Admin Password to delete this image:');
+          if (!currentPwd) return;
+        }
+
+        if (confirm('Delete this image permanently from Cloudflare?')) {
+          const res = await fetch(`/api/images/${filename}?pwd=${currentPwd}`, { method: 'DELETE' });
+          if (res.ok) {
+            card.remove();
+            if (!adminPassword && currentPwd === '74722222') {
+              adminPassword = currentPwd; // একবার সঠিক পাসওয়ার্ড দিলে তা সেভ থাকবে
+            }
+          } else {
+            alert('Failed to delete! Incorrect Password.');
+          }
+        }
+      };
+      actionDiv.appendChild(deleteBtn);
+
+      card.appendChild(actionDiv);
+
+      if (isPrepend) {
+        streamsGrid.prepend(card);
+      } else {
+        streamsGrid.appendChild(card);
+      }
+    }
+  </script>
+</body>
+</html>

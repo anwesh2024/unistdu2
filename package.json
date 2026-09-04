@@ -1,0 +1,18 @@
+{
+  "name": "camera-snapshot-demo",
+  "version": "2.0.0",
+  "private": true,
+  "description": "Consent-based camera snapshot sharing demo",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.0.0",
+    "express": "^4.18.2",
+    "ws": "^8.18.0"
+  }
+}
