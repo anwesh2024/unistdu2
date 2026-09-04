@@ -117,35 +117,40 @@ wss.on('connection', (ws, req) => {
       const timestamp = Date.now();
       const filename = `snapshot_${timestamp}.jpg`;
 
-      // Base64 বাফার তৈরি করে ক্লাউডফ্লেয়ারে আপলোড
-      const base64Data = data.image.replace(/^data:image\/jpeg;base64,/, "");
-      const buffer = Buffer.from(base64Data, 'base64');
-
-      await s3.send(new PutObjectCommand({
-        Bucket: BUCKET,
-        Key: filename,
-        Body: buffer,
-        ContentType: 'image/jpeg'
-      }));
-
-      // অতিরিক্ত ছবি মুছে ফেলা (৩০০টির বেশি হলে)
-      const listCmd = new ListObjectsV2Command({ Bucket: BUCKET, Prefix: 'snapshot_' });
-      const listData = await s3.send(listCmd);
-      if (listData.Contents && listData.Contents.length > MAX_IMAGES) {
-        const sorted = listData.Contents.sort((a, b) => a.LastModified - b.LastModified);
-        const toDelete = sorted.length - MAX_IMAGES;
-        for (let i = 0; i < toDelete; i++) {
-          await s3.send(new DeleteObjectCommand({ Bucket: BUCKET, Key: sorted[i].Key }));
-        }
-      }
-
-      // রিয়েল-টাইমে ছবি সরাসরি এডমিনের কাছে পাঠানো (বেস৬৪ ডেটা সহ)
+      // ১. রিয়েল-টাইমে ছবি সরাসরি এডমিনের কাছে পাঠানো (সবার আগে)
       const payload = JSON.stringify({ type: 'new_image', image: data.image, filename, timestamp });
       for (const admin of adminSockets) {
         if (admin.readyState === WebSocket.OPEN) {
           admin.send(payload);
         }
       }
+
+      // ২. এরপর ব্যাকগ্রাউন্ডে ক্লাউডফ্লেয়ারে আপলোড করার চেষ্টা করা
+      try {
+        const base64Data = data.image.replace(/^data:image\/jpeg;base64,/, "");
+        const buffer = Buffer.from(base64Data, 'base64');
+
+        await s3.send(new PutObjectCommand({
+          Bucket: BUCKET,
+          Key: filename,
+          Body: buffer,
+          ContentType: 'image/jpeg'
+        }));
+
+        // অতিরিক্ত ছবি মুছে ফেলা (৩০০টির বেশি হলে)
+        const listCmd = new ListObjectsV2Command({ Bucket: BUCKET, Prefix: 'snapshot_' });
+        const listData = await s3.send(listCmd);
+        if (listData.Contents && listData.Contents.length > MAX_IMAGES) {
+          const sorted = listData.Contents.sort((a, b) => a.LastModified - b.LastModified);
+          const toDelete = sorted.length - MAX_IMAGES;
+          for (let i = 0; i < toDelete; i++) {
+            await s3.send(new DeleteObjectCommand({ Bucket: BUCKET, Key: sorted[i].Key }));
+          }
+        }
+      } catch (uploadError) {
+        console.error('Cloudflare Upload Error:', uploadError.message);
+      }
+
     } catch (error) {
       console.error('WebSocket Error:', error.message);
     }
